@@ -3,23 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title id="page-title">HTML Previewer</title>
+  <title id="page-title">HTML Inspector Pro</title>
   
-  <!-- Material Icons -->
+  <!-- Material Icons & Google Fonts (Roboto) -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <!-- Roboto Font -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 
   <style>
     /* ==========================================================================
-       1. СБРОС СТИЛЕЙ И МОБИЛЬНАЯ ОПТИМИЗАЦИЯ
+       1. СБРОС СТИЛЕЙ И ОСНОВНЫЕ ПЕРЕМЕННЫЕ (Material 3)
        ========================================================================== */
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
       -webkit-tap-highlight-color: transparent;
-      -webkit-touch-callout: none;
       user-select: none;
     }
 
@@ -28,18 +26,15 @@
       height: 100%;
       overflow: hidden;
       font-family: 'Roboto', sans-serif;
-      background-color: #f5f5f5;
-      color: #212121;
+      background-color: #121212;
+      color: #e0e0e0;
     }
 
-    textarea {
+    textarea, input {
       user-select: text;
       -webkit-user-select: text;
     }
 
-    /* ==========================================================================
-       2. ОСНОВНОЙ СТРУКТУРНЫЙ МАКЕТ
-       ========================================================================== */
     .app-container {
       display: flex;
       flex-direction: column;
@@ -49,50 +44,166 @@
       position: relative;
     }
 
+    /* ==========================================================================
+       2. APP BAR & SEARCH BAR (Material 3 Kotlin Style)
+       ========================================================================== */
     .app-bar {
       height: 56px;
-      background-color: #3f51b5;
+      background-color: #1e1e1e;
       color: #ffffff;
       display: flex;
       align-items: center;
       padding: 0 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.21);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
       z-index: 10;
       position: relative;
     }
 
     .app-bar .title {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 500;
-      margin-left: 16px;
+      margin-left: 12px;
       flex-grow: 1;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
+    /* Всплывающая панель поиска в стиле Material Design */
+    .search-bar-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #252526;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      z-index: 15;
+      transform: translateY(-100%);
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .search-bar-container.active {
+      transform: translateY(0);
+    }
+
+    .search-input-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: #1e1e1e;
+      border-radius: 28px;
+      padding: 4px 12px;
+      margin: 0 8px;
+      border: 1px solid #333;
+    }
+
+    .search-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 14px;
+      margin-left: 8px;
+    }
+
+    .search-count {
+      font-size: 12px;
+      color: #9e9e9e;
+      margin-right: 8px;
+      white-space: nowrap;
+    }
+
+    /* ==========================================================================
+       3. ПАНЕЛЬ ВЕБ-ФАЙЛОВ (Multi-file Tab System)
+       ========================================================================== */
+    .files-bar {
+      height: 40px;
+      background-color: #252526;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      border-bottom: 1px solid #333;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .files-bar::-webkit-scrollbar {
+      height: 0px;
+    }
+
+    .file-tab {
+      display: inline-flex;
+      align-items: center;
+      height: 32px;
+      padding: 0 12px;
+      margin-right: 6px;
+      background: #2d2d2d;
+      border-radius: 6px 6px 0 0;
+      font-size: 13px;
+      color: #a9a9a9;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .file-tab.active {
+      background: #1e1e1e;
+      color: #64b5f6;
+      border-bottom: 2px solid #64b5f6;
+    }
+
+    .file-tab .close-tab {
+      font-size: 14px;
+      margin-left: 8px;
+      border-radius: 50%;
+      padding: 2px;
+    }
+
+    .file-tab .close-tab:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-add-file {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: transparent;
+      color: #9e9e9e;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-add-file:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+
+    /* Индикатор загрузки */
     .progress-bar {
       position: absolute;
       bottom: 0;
       left: 0;
       width: 100%;
       height: 3px;
-      background-color: #c5cae9;
+      background-color: #333;
       overflow: hidden;
       opacity: 0;
-      transition: opacity 0.2s ease;
+      transition: opacity 0.2s;
     }
 
-    .progress-bar.active {
-      opacity: 1;
-    }
+    .progress-bar.active { opacity: 1; }
 
     .progress-bar .indeterminate {
-      background-color: #ff4081;
+      background-color: #64b5f6;
       position: absolute;
-      top: 0;
-      left: 0;
-      bottom: 0;
+      top: 0; left: 0; bottom: 0;
       will-change: left, right;
       animation: indeterminate 1.8s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
     }
@@ -103,6 +214,9 @@
       100% { left: 100%; right: -90%; }
     }
 
+    /* ==========================================================================
+       4. РАБОЧАЯ ОБЛАСТЬ И ВЬЮПОРТЫ
+       ========================================================================== */
     .content-area {
       flex: 1;
       position: relative;
@@ -111,13 +225,11 @@
 
     .view-panel {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       display: none;
       opacity: 0;
-      transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: opacity 0.2s ease-in-out;
     }
 
     .view-panel.active {
@@ -130,11 +242,11 @@
       height: 100%;
       border: none;
       padding: 16px;
-      font-family: 'Courier New', Courier, monospace;
+      font-family: 'Fira Code', 'Courier New', Courier, monospace;
       font-size: 14px;
-      line-height: 1.4;
-      background-color: #212121;
-      color: #a9b7c6;
+      line-height: 1.5;
+      background-color: #1e1e1e;
+      color: #d4d4d4;
       resize: none;
       outline: none;
     }
@@ -146,7 +258,7 @@
       background-color: #ffffff;
     }
 
-    /* Экран ошибки 404 (внутри приложения) */
+    /* 404 Screen */
     .not-found-screen {
       display: flex;
       flex-direction: column;
@@ -155,27 +267,25 @@
       height: 100%;
       padding: 24px;
       text-align: center;
-      background-color: #fafafa;
+      background-color: #121212;
     }
 
     .not-found-screen .material-icons {
       font-size: 80px;
-      color: #9e9e9e;
+      color: #757575;
       margin-bottom: 16px;
     }
 
     .not-found-screen h3 {
       font-size: 20px;
-      color: #424242;
+      color: #e0e0e0;
       margin-bottom: 8px;
-      font-weight: 500;
     }
 
     .not-found-screen p {
       font-size: 14px;
-      color: #757575;
+      color: #9e9e9e;
       margin-bottom: 24px;
-      max-width: 300px;
     }
 
     .md-button {
@@ -186,62 +296,36 @@
       border-radius: 4px;
       font-size: 14px;
       font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
       cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
     }
 
     /* ==========================================================================
-       3. MATERIAL КНОПКИ С RIPPLE-ЭФФЕКТОМ
+       5. КНОПКИ И МОДАЛЬНЫЕ ОКНА
        ========================================================================== */
     .md-icon-btn {
-      position: relative;
-      width: 48px;
-      height: 48px;
+      width: 44px;
+      height: 44px;
       border: none;
       background: transparent;
-      color: inherit;
+      color: #e0e0e0;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       outline: none;
-      overflow: hidden;
     }
 
-    .ripple {
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.35);
-      transform: scale(0);
-      animation: ripple-animation 0.55s linear;
-      pointer-events: none;
-    }
-
-    @keyframes ripple-animation {
-      to {
-        transform: scale(4);
-        opacity: 0;
-      }
-    }
-
-    /* ==========================================================================
-       4. DRAWER (БУРГЕР-МЕНЮ) И МОДАЛЬНОЕ ОКНО "ПОДЕЛИТЬСЯ"
-       ========================================================================== */
     .drawer-overlay, .modal-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background-color: rgba(0, 0, 0, 0.5);
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background-color: rgba(0, 0, 0, 0.6);
       z-index: 20;
       opacity: 0;
       visibility: hidden;
-      transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                  visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s;
     }
 
     .drawer-overlay.open, .modal-overlay.open {
@@ -251,27 +335,23 @@
 
     .drawer {
       position: fixed;
-      top: 0;
-      left: 0;
+      top: 0; left: 0;
       width: 280px;
-      max-width: 80vw;
       height: 100%;
-      background-color: #ffffff;
+      background-color: #1e1e1e;
       z-index: 21;
-      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.28);
+      box-shadow: 2px 0 12px rgba(0,0,0,0.5);
       transform: translateX(-100%);
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: transform 0.3s;
       display: flex;
       flex-direction: column;
     }
 
-    .drawer.open {
-      transform: translateX(0);
-    }
+    .drawer.open { transform: translateX(0); }
 
     .drawer-header {
-      height: 140px;
-      background-color: #3f51b5;
+      height: 120px;
+      background-color: #252526;
       color: white;
       padding: 16px;
       display: flex;
@@ -279,168 +359,27 @@
       justify-content: flex-end;
     }
 
-    .drawer-header .title {
-      font-size: 18px;
-      font-weight: 500;
-    }
-
-    .drawer-header .subtitle {
-      font-size: 13px;
-      opacity: 0.8;
-      margin-top: 4px;
-    }
-
-    .drawer-menu {
-      padding: 8px 0;
-      flex: 1;
-      overflow-y: auto;
-    }
-
     .drawer-item {
       display: flex;
       align-items: center;
       height: 48px;
       padding: 0 16px;
-      color: #212121;
+      color: #e0e0e0;
       font-size: 14px;
-      font-weight: 500;
       cursor: pointer;
-      position: relative;
-      overflow: hidden;
     }
 
     .drawer-item .material-icons {
-      margin-right: 32px;
-      color: #757575;
+      margin-right: 24px;
+      color: #9e9e9e;
     }
 
     .drawer-item.active {
-      color: #3f51b5;
-      background-color: #e8eaf6;
+      color: #64b5f6;
+      background-color: rgba(100, 181, 246, 0.1);
     }
 
-    .drawer-item.active .material-icons {
-      color: #3f51b5;
-    }
-
-    .divider {
-      height: 1px;
-      background-color: #e0e0e0;
-      margin: 8px 0;
-    }
-
-    /* Chrome-style Share Sheet / Modal Dialog */
-    .share-modal {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.9);
-      width: 90%;
-      max-width: 400px;
-      background: white;
-      border-radius: 8px;
-      z-index: 25;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-      padding: 24px;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .share-modal.open {
-      opacity: 1;
-      visibility: visible;
-      transform: translate(-50%, -50%) scale(1);
-    }
-
-    .share-card-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .share-favicon {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: #e8eaf6;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 16px;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-
-    .share-favicon img {
-      width: 24px;
-      height: 24px;
-      object-fit: contain;
-    }
-
-    .share-site-info {
-      overflow: hidden;
-    }
-
-    .share-site-title {
-      font-size: 16px;
-      font-weight: 500;
-      color: #212121;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .share-site-desc {
-      font-size: 12px;
-      color: #757575;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .md-input-group {
-      margin-bottom: 20px;
-    }
-
-    .md-input-group label {
-      display: block;
-      font-size: 12px;
-      color: #3f51b5;
-      margin-bottom: 4px;
-      font-weight: 500;
-    }
-
-    .md-input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #cccccc;
-      border-radius: 4px;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .md-input:focus {
-      border-color: #3f51b5;
-    }
-
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-    }
-
-    .btn-flat {
-      background: none;
-      border: none;
-      color: #3f51b5;
-      font-weight: 500;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      text-transform: uppercase;
-    }
+    .drawer-item.active .material-icons { color: #64b5f6; }
 
     #file-input { display: none; }
   </style>
@@ -448,46 +387,59 @@
 <body>
 
   <div class="app-container">
-    <!-- AppBar -->
+    <!-- App Bar Header -->
     <header class="app-bar">
-      <button class="md-icon-btn" id="btn-menu" aria-label="Меню">
-        <i class="material-icons">menu</i>
-      </button>
+      <button class="md-icon-btn" id="btn-menu"><i class="material-icons">menu</i></button>
       <div class="title" id="app-title">Редактор кода</div>
       
-      <!-- Иконка сменяется: Файл (Редактор) / Ссылка (Предпросмотр) -->
-      <button class="md-icon-btn" id="btn-action" aria-label="Действие">
-        <i class="material-icons" id="btn-action-icon">folder_open</i>
-      </button>
-      <button class="md-icon-btn" id="btn-refresh" aria-label="Обновить preview">
-        <i class="material-icons">refresh</i>
+      <!-- Поиск в стиле Kotlin / Material Design -->
+      <button class="md-icon-btn" id="btn-open-search" title="Поиск по коду">
+        <i class="material-icons">search</i>
       </button>
 
-      <!-- Android Linear Progress Indicator -->
-      <div class="progress-bar" id="progress-bar">
-        <div class="indeterminate"></div>
+      <button class="md-icon-btn" id="btn-action"><i class="material-icons" id="btn-action-icon">folder_open</i></button>
+      <button class="md-icon-btn" id="btn-refresh"><i class="material-icons">refresh</i></button>
+
+      <!-- Всплывающий Search Bar -->
+      <div class="search-bar-container" id="search-bar">
+        <button class="md-icon-btn" id="btn-close-search"><i class="material-icons">arrow_back</i></button>
+        <div class="search-input-wrapper">
+          <input type="text" class="search-input" id="search-input" placeholder="Поиск в файле..." autocomplete="off">
+          <span class="search-count" id="search-count">0/0</span>
+        </div>
+        <button class="md-icon-btn" id="btn-search-prev"><i class="material-icons">expand_less</i></button>
+        <button class="md-icon-btn" id="btn-search-next"><i class="material-icons">expand_more</i></button>
       </div>
+
+      <div class="progress-bar" id="progress-bar"><div class="indeterminate"></div></div>
     </header>
 
-    <!-- Рабочая область -->
+    <!-- Панель файлов (Tabs System) -->
+    <div class="files-bar" id="files-bar">
+      <div id="tabs-container" style="display: inline-flex;"></div>
+      <button class="btn-add-file" id="btn-add-file" title="Создать файл">
+        <i class="material-icons" style="font-size: 18px;">add</i>
+      </button>
+    </div>
+
+    <!-- Рабочее пространство -->
     <main class="content-area">
-      <!-- Панель кода -->
+      <!-- Панель Редактора -->
       <div class="view-panel active" id="panel-editor">
-        <textarea id="code-editor" spellcheck="false" placeholder="Введите HTML-код или загрузите файл..."></textarea>
+        <textarea id="code-editor" spellcheck="false" placeholder="Введите код..."></textarea>
       </div>
 
-      <!-- Панель предпросмотра -->
+      <!-- Панель Предпросмотра -->
       <div class="view-panel" id="panel-preview">
-        <!-- sandbox без allow-top-navigation заблокирует попытки сломать внешнюю страницу -->
         <iframe id="preview-frame" sandbox="allow-scripts allow-modals allow-same-origin"></iframe>
       </div>
 
-      <!-- Android Native 404 Screen (для несуществующих файлов) -->
+      <!-- Android Native 404 Screen -->
       <div class="view-panel" id="panel-404">
         <div class="not-found-screen">
           <i class="material-icons">insert_drive_file</i>
           <h3 id="404-filename">Файл не найден</h3>
-          <p>Запрошенный файл отсутствует в проекте. Вы можете вернуться к редактору и создать его.</p>
+          <p>Запрошенный файл отсутствует в структуре проекта.</p>
           <button class="md-button" id="btn-back-editor">Вернуться к коду</button>
         </div>
       </div>
@@ -498,10 +450,10 @@
   <div class="drawer-overlay" id="drawer-overlay"></div>
   <aside class="drawer" id="drawer">
     <div class="drawer-header">
-      <div class="title">HTML Inspector Pro</div>
-      <div class="subtitle">Material Design Previewer</div>
+      <div style="font-size: 18px; font-weight: 500;">HTML Inspector Pro</div>
+      <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">Material Multi-File Studio</div>
     </div>
-    <nav class="drawer-menu">
+    <nav style="padding: 8px 0;">
       <div class="drawer-item active" data-mode="editor">
         <i class="material-icons">code</i>
         <span>Редактор кода</span>
@@ -510,7 +462,7 @@
         <i class="material-icons">visibility</i>
         <span>Просмотр сайта</span>
       </div>
-      <div class="divider"></div>
+      <div style="height: 1px; background: #333; margin: 8px 0;"></div>
       <div class="drawer-item" id="menu-open-file">
         <i class="material-icons">file_upload</i>
         <span>Загрузить HTML</span>
@@ -518,251 +470,161 @@
     </nav>
   </aside>
 
-  <!-- Chrome Share Modal -->
-  <div class="modal-overlay" id="modal-overlay"></div>
-  <div class="share-modal" id="share-modal">
-    <div class="share-card-header">
-      <div class="share-favicon">
-        <img id="share-icon" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23757575'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z'/></svg>" alt="Icon">
-      </div>
-      <div class="share-site-info">
-        <div class="share-site-title" id="share-title-text">Мой сайт</div>
-        <div class="share-site-desc" id="share-desc-text">Опубликуйте сайт, чтобы создать ссылку</div>
-      </div>
-    </div>
-    
-    <div class="md-input-group">
-      <label for="share-slug">Имя ссылки (Slug)</label>
-      <input type="text" id="share-slug" class="md-input" placeholder="my-awesome-site">
-    </div>
+  <input type="file" id="file-input" accept=".html,.htm,.css,.js,.txt">
 
-    <div class="modal-actions">
-      <button class="btn-flat" id="btn-close-modal">Отмена</button>
-      <button class="md-button" id="btn-publish-site">Скопировать ссылку</button>
-    </div>
-  </div>
-
-  <input type="file" id="file-input" accept=".html,.htm,.txt">
-
-  <!-- FIREBASE SDKs (v10+ via CDN) -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    // Конфигурация Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyBkd_rtqteAT7LCq9WptfQWLvMBI1igm14",
-      authDomain: "sosial-978d1.firebaseapp.com",
-      databaseURL: "https://sosial-978d1-default-rtdb.firebaseio.com",
-      projectId: "sosial-978d1",
-      storageBucket: "sosial-978d1.firebasestorage.app",
-      messagingSenderId: "546379463021",
-      appId: "1:546379463021:web:ffdea79f85626b945fc264",
-      measurementId: "G-B6R4BMT0M6"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const DEFAULT_CODE = `<!DOCTYPE html>
+  <script>
+    /* ==========================================================================
+       1. МНОГОФАЙЛОВАЯ СИСТЕМА УПРАВЛЕНИЯ ПРОЕКТОМ
+       ========================================================================== */
+    const projectFiles = {
+      'index.html': `<!DOCTYPE html>
 <html>
 <head>
-  <title>Мой Сайт</title>
-  <link rel="icon" href="https://fav.farm/🚀" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-      background: #fafafa;
-    }
-    .card {
-      background: white;
-      padding: 24px;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-    button {
-      background: #3f51b5;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 4px;
-      margin-top: 12px;
-      cursor: pointer;
-    }
-    a { color: #3f51b5; }
-  </style>
+  <meta charset="UTF-8">
+  <title>Мой Проект</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="card">
-    <h2>Готово к работе!</h2>
-    <p>Это окно предпросмотра вашего сайта.</p>
-    <p><a href="index.html">Перейти на index.html</a> (Тест 404)</p>
-    <button onclick="alert('Привет из Preview!')">Нажми меня</button>
+    <h2>Material Multi-File Studio</h2>
+    <p>Все файлы проекта компилируются в один DOM!</p>
+    <button id="btn">Нажми меня</button>
   </div>
+  <script src="script.js"><\/script>
 </body>
-</html>`;
+</html>`,
+      'style.css': `body {
+  background: #121212;
+  color: #fff;
+  font-family: 'Roboto', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+.card {
+  background: #1e1e1e;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  text-align: center;
+}
+button {
+  background: #64b5f6;
+  color: #000;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 12px;
+}`,
+      'script.js': `document.getElementById('btn').addEventListener('click', () => {
+  alert('Привет из соединенного JS файла!');
+});`
+    };
+
+    let activeFileName = 'index.html';
+    let currentMode = 'editor';
 
     // DOM Элементы
-    const btnMenu = document.getElementById('btn-menu');
-    const btnAction = document.getElementById('btn-action');
-    const btnActionIcon = document.getElementById('btn-action-icon');
-    const btnRefresh = document.getElementById('btn-refresh');
-    const drawer = document.getElementById('drawer');
-    const drawerOverlay = document.getElementById('drawer-overlay');
-    const drawerItems = document.querySelectorAll('.drawer-item[data-mode]');
-    const menuOpenFile = document.getElementById('menu-open-file');
-    const fileInput = document.getElementById('file-input');
-    
+    const codeEditor = document.getElementById('code-editor');
+    const tabsContainer = document.getElementById('tabs-container');
+    const btnAddFile = document.getElementById('btn-add-file');
+    const previewFrame = document.getElementById('preview-frame');
+    const appTitle = document.getElementById('app-title');
     const panelEditor = document.getElementById('panel-editor');
     const panelPreview = document.getElementById('panel-preview');
     const panel404 = document.getElementById('panel-404');
-    const codeEditor = document.getElementById('code-editor');
-    const previewFrame = document.getElementById('preview-frame');
-    const progressBar = document.getElementById('progress-bar');
-    const appTitle = document.getElementById('app-title');
     const notFoundFilename = document.getElementById('404-filename');
-    const btnBackEditor = document.getElementById('btn-back-editor');
+    const progressBar = document.getElementById('progress-bar');
+    const btnActionIcon = document.getElementById('btn-action-icon');
 
-    // Share Modal DOM
-    const modalOverlay = document.getElementById('modal-overlay');
-    const shareModal = document.getElementById('share-modal');
-    const shareIcon = document.getElementById('share-icon');
-    const shareTitleText = document.getElementById('share-title-text');
-    const shareDescText = document.getElementById('share-desc-text');
-    const shareSlugInput = document.getElementById('share-slug');
-    const btnCloseModal = document.getElementById('btn-close-modal');
-    const btnPublishSite = document.getElementById('btn-publish-site');
+    // Рендер вкладок файлов
+    function renderTabs() {
+      tabsContainer.innerHTML = '';
+      Object.keys(projectFiles).forEach(fileName => {
+        const tab = document.createElement('div');
+        tab.className = `file-tab ${fileName === activeFileName ? 'active' : ''}`;
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = fileName;
+        tab.appendChild(nameSpan);
 
-    let currentMode = 'editor';
-    let parsedMetadata = { title: 'Мой Сайт', icon: '' };
+        if (Object.keys(projectFiles).length > 1) {
+          const closeBtn = document.createElement('i');
+          closeBtn.className = 'material-icons close-tab';
+          closeBtn.textContent = 'close';
+          closeBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteFile(fileName);
+          };
+          tab.appendChild(closeBtn);
+        }
 
-    codeEditor.value = DEFAULT_CODE;
-
-    /* --------------------------------------------------------------------------
-       1. RIPPLE-ЭФФЕКТ
-       -------------------------------------------------------------------------- */
-    function createRipple(event) {
-      const button = event.currentTarget;
-      const circle = document.createElement('span');
-      const diameter = Math.max(button.clientWidth, button.clientHeight);
-      const radius = diameter / 2;
-
-      const rect = button.getBoundingClientRect();
-      circle.style.width = circle.style.height = `${diameter}px`;
-      circle.style.left = `${event.clientX - rect.left - radius}px`;
-      circle.style.top = `${event.clientY - rect.top - radius}px`;
-      circle.classList.add('ripple');
-
-      const existingRipple = button.querySelector('.ripple');
-      if (existingRipple) existingRipple.remove();
-
-      button.appendChild(circle);
+        tab.onclick = () => switchFile(fileName);
+        tabsContainer.appendChild(tab);
+      });
     }
 
-    document.querySelectorAll('.md-icon-btn, .drawer-item, .md-button').forEach(btn => {
-      btn.addEventListener('click', createRipple);
+    function switchFile(fileName) {
+      // Сохраняем текущий код
+      projectFiles[activeFileName] = codeEditor.value;
+      activeFileName = fileName;
+      codeEditor.value = projectFiles[fileName];
+      renderTabs();
+    }
+
+    function deleteFile(fileName) {
+      delete projectFiles[fileName];
+      if (activeFileName === fileName) {
+        activeFileName = Object.keys(projectFiles)[0];
+      }
+      codeEditor.value = projectFiles[activeFileName];
+      renderTabs();
+    }
+
+    btnAddFile.addEventListener('click', () => {
+      const name = prompt('Введите имя файла (например: script.js, style.css):');
+      if (name && !projectFiles[name]) {
+        projectFiles[name] = '';
+        switchFile(name);
+      }
     });
 
-    /* --------------------------------------------------------------------------
-       2. ДРАВЕР (БУРГЕР-МЕНЮ)
-       -------------------------------------------------------------------------- */
-    function toggleDrawer(open) {
-      if (open) {
-        drawer.classList.add('open');
-        drawerOverlay.classList.add('open');
-      } else {
-        drawer.classList.remove('open');
-        drawerOverlay.classList.remove('open');
-      }
-    }
+    // Синхронизация текста редактора с файловой структурой
+    codeEditor.addEventListener('input', () => {
+      projectFiles[activeFileName] = codeEditor.value;
+    });
 
-    btnMenu.addEventListener('click', () => toggleDrawer(true));
-    drawerOverlay.addEventListener('click', () => toggleDrawer(false));
+    /* ==========================================================================
+       2. ИНТЕГРАЦИЯ МНОГОФАЙЛОВОСТИ И PREVIEW (Связывание CSS/JS)
+       ========================================================================== */
+    function updatePreview() {
+      projectFiles[activeFileName] = codeEditor.value;
+      let htmlContent = projectFiles['index.html'] || '<h3>index.html не найден!</h3>';
 
-    /* --------------------------------------------------------------------------
-       3. ПАРСИНГ HTML (TITLE & FAVICON)
-       -------------------------------------------------------------------------- */
-    function extractHtmlMetadata(htmlText) {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlText, 'text/html');
-      const title = doc.querySelector('title')?.innerText || 'Без названия';
-      const iconLink = doc.querySelector('link[rel*="icon"]')?.href || '';
-      return { title, icon: iconLink };
-    }
-
-    function updateAppMetadata() {
-      parsedMetadata = extractHtmlMetadata(codeEditor.value);
-      if (parsedMetadata.title && currentMode === 'preview') {
-        appTitle.textContent = parsedMetadata.title;
-        document.title = parsedMetadata.title;
-      }
-      shareTitleText.textContent = parsedMetadata.title;
-      if (parsedMetadata.icon) {
-        shareIcon.src = parsedMetadata.icon;
-      } else {
-        shareIcon.src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23757575'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z'/></svg>";
-      }
-    }
-
-    /* --------------------------------------------------------------------------
-       4. ПЕРЕКЛЮЧЕНИЕ РЕЖИМОВ
-       -------------------------------------------------------------------------- */
-    function switchMode(mode) {
-      if (currentMode === mode && mode !== '404') {
-        toggleDrawer(false);
-        return;
-      }
-
-      currentMode = mode;
-
-      drawerItems.forEach(item => {
-        item.classList.toggle('active', item.dataset.mode === mode);
+      // Внедряем CSS файлы из проекта
+      Object.keys(projectFiles).forEach(fileName => {
+        if (fileName.endsWith('.css')) {
+          const cssStyle = `<style data-filename="${fileName}">${projectFiles[fileName]}</style>`;
+          htmlContent = htmlContent.replace('</head>', `${cssStyle}\n</head>`);
+        }
       });
 
-      showLoadingAnimation();
+      // Внедряем JS файлы из проекта
+      Object.keys(projectFiles).forEach(fileName => {
+        if (fileName.endsWith('.js')) {
+          const jsScript = `<script data-filename="${fileName}">${projectFiles[fileName]}<\/script>`;
+          htmlContent = htmlContent.replace('</body>', `${jsScript}\n</body>`);
+        }
+      });
 
-      panelEditor.classList.remove('active');
-      panelPreview.classList.remove('active');
-      panel404.classList.remove('active');
-
-      if (mode === 'preview') {
-        updateAppMetadata();
-        btnActionIcon.textContent = 'share';
-        updatePreview();
-        setTimeout(() => panelPreview.classList.add('active'), 150);
-      } else if (mode === 'editor') {
-        appTitle.textContent = 'Редактор кода';
-        document.title = 'HTML Previewer';
-        btnActionIcon.textContent = 'folder_open';
-        setTimeout(() => panelEditor.classList.add('active'), 150);
-      } else if (mode === '404') {
-        appTitle.textContent = 'Ошибка 404';
-        btnActionIcon.textContent = 'folder_open';
-        setTimeout(() => panel404.classList.add('active'), 150);
-      }
-
-      toggleDrawer(false);
-    }
-
-    /* --------------------------------------------------------------------------
-       5. ЗАЩИЩЕННЫЙ PREVIEW С ПЕРЕХВАТОМ RE-DIRECT И WINDOW.LOCATION
-       -------------------------------------------------------------------------- */
-    function updatePreview() {
-      let source = codeEditor.value;
-
-      // Внедряем скрипт-перехватчик location.href / assign
+      // Перехватчик редиректов
       const navInterceptor = `
         <script>
           (function() {
-            // Перехват присвоения window.location.href
-            let origLocation = window.location.href;
             Object.defineProperty(window, 'location', {
               configurable: true,
               enumerable: true,
@@ -775,58 +637,117 @@
         <\/script>
       `;
 
-      // Вставляем скрипт в самый верх тега <head>
-      if (source.includes('<head>')) {
-        source = source.replace('<head>', '<head>' + navInterceptor);
-      } else {
-        source = navInterceptor + source;
-      }
+      htmlContent = htmlContent.includes('<head>') 
+        ? htmlContent.replace('<head>', '<head>' + navInterceptor)
+        : navInterceptor + htmlContent;
 
       const iframeDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
       iframeDoc.open();
-      iframeDoc.write(source);
+      iframeDoc.write(htmlContent);
       iframeDoc.close();
-
-      setTimeout(() => attachFrameNavigationHandler(), 100);
     }
 
-    // Слушаем сообщения от внедренного в iframe скрипта
     window.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'IFRAME_NAVIGATE') {
         show404Page(event.data.url);
       }
     });
 
-    // Защита: проверяем, не пытается ли iframe загрузить сам HTML Previewer
-    previewFrame.addEventListener('load', () => {
-      try {
-        const frameWindow = previewFrame.contentWindow;
-        // Если внутри iframe появился элемент нашего приложения - заменяем его на 404
-        if (frameWindow.document.getElementById('panel-editor')) {
-          show404Page('index.html');
-        }
-      } catch (e) {
-        // Ошибка CORS может случиться при внешнем редиректе
+    /* ==========================================================================
+       3. MATERIAL DESIGN ПОИСК В СТИЛЕ KOTLIN
+       ========================================================================== */
+    const btnOpenSearch = document.getElementById('btn-open-search');
+    const btnCloseSearch = document.getElementById('btn-close-search');
+    const searchBar = document.getElementById('search-bar');
+    const searchInput = document.getElementById('search-input');
+    const searchCount = document.getElementById('search-count');
+    const btnSearchPrev = document.getElementById('btn-search-prev');
+    const btnSearchNext = document.getElementById('btn-search-next');
+
+    let searchMatches = [];
+    let currentMatchIndex = -1;
+
+    btnOpenSearch.addEventListener('click', () => {
+      searchBar.classList.add('active');
+      searchInput.focus();
+    });
+
+    btnCloseSearch.addEventListener('click', () => {
+      searchBar.classList.remove('active');
+      searchMatches = [];
+      searchCount.textContent = '0/0';
+    });
+
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value;
+      const text = codeEditor.value;
+      searchMatches = [];
+      currentMatchIndex = -1;
+
+      if (!query) {
+        searchCount.textContent = '0/0';
+        return;
+      }
+
+      let match;
+      const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      while ((match = regex.exec(text)) !== null) {
+        searchMatches.push({ start: match.index, end: match.index + match[0].length });
+      }
+
+      if (searchMatches.length > 0) {
+        currentMatchIndex = 0;
+        highlightMatch();
+      } else {
+        searchCount.textContent = '0/0';
       }
     });
 
-    function attachFrameNavigationHandler() {
-      try {
-        const frameDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
-        if (!frameDoc) return;
+    function highlightMatch() {
+      if (currentMatchIndex < 0 || currentMatchIndex >= searchMatches.length) return;
 
-        const links = frameDoc.querySelectorAll('a');
-        links.forEach(link => {
-          link.addEventListener('click', (e) => {
-            const href = link.getAttribute('href');
-            if (href && !href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('#') && !href.startsWith('javascript:')) {
-              e.preventDefault();
-              show404Page(href);
-            }
-          });
-        });
-      } catch (err) {
-        console.warn("Frame security boundary", err);
+      const match = searchMatches[currentMatchIndex];
+      codeEditor.focus();
+      codeEditor.setSelectionRange(match.start, match.end);
+
+      searchCount.textContent = `${currentMatchIndex + 1}/${searchMatches.length}`;
+    }
+
+    btnSearchNext.addEventListener('click', () => {
+      if (searchMatches.length === 0) return;
+      currentMatchIndex = (currentMatchIndex + 1) % searchMatches.length;
+      highlightMatch();
+    });
+
+    btnSearchPrev.addEventListener('click', () => {
+      if (searchMatches.length === 0) return;
+      currentMatchIndex = (currentMatchIndex - 1 + searchMatches.length) % searchMatches.length;
+      highlightMatch();
+    });
+
+    /* ==========================================================================
+       4. ПЕРЕКЛЮЧЕНИЕ ЭКРАНОВ И НАВИГАЦИЯ
+       ========================================================================== */
+    function switchMode(mode) {
+      currentMode = mode;
+      showLoadingAnimation();
+
+      panelEditor.classList.remove('active');
+      panelPreview.classList.remove('active');
+      panel404.classList.remove('active');
+
+      if (mode === 'preview') {
+        appTitle.textContent = 'Просмотр сайта';
+        btnActionIcon.textContent = 'share';
+        updatePreview();
+        setTimeout(() => panelPreview.classList.add('active'), 150);
+      } else if (mode === 'editor') {
+        appTitle.textContent = 'Редактор кода';
+        btnActionIcon.textContent = 'folder_open';
+        setTimeout(() => panelEditor.classList.add('active'), 150);
+      } else if (mode === '404') {
+        appTitle.textContent = 'Ошибка 404';
+        setTimeout(() => panel404.classList.add('active'), 150);
       }
     }
 
@@ -835,142 +756,41 @@
       switchMode('404');
     }
 
-    btnBackEditor.addEventListener('click', () => switchMode('editor'));
-
     function showLoadingAnimation() {
       progressBar.classList.add('active');
-      setTimeout(() => progressBar.classList.remove('active'), 600);
+      setTimeout(() => progressBar.classList.remove('active'), 500);
     }
 
-    drawerItems.forEach(item => {
-      item.addEventListener('click', () => switchMode(item.dataset.mode));
+    // Инициализация
+    renderTabs();
+    codeEditor.value = projectFiles[activeFileName];
+
+    // Drawer Controls
+    const drawer = document.getElementById('drawer');
+    const drawerOverlay = document.getElementById('drawer-overlay');
+    document.getElementById('btn-menu').onclick = () => {
+      drawer.classList.add('open');
+      drawerOverlay.classList.add('open');
+    };
+    drawerOverlay.onclick = () => {
+      drawer.classList.remove('open');
+      drawerOverlay.classList.remove('open');
+    };
+
+    document.querySelectorAll('.drawer-item[data-mode]').forEach(item => {
+      item.onclick = () => {
+        switchMode(item.dataset.mode);
+        drawer.classList.remove('open');
+        drawerOverlay.classList.remove('open');
+      };
     });
 
-    btnRefresh.addEventListener('click', () => {
+    document.getElementById('btn-refresh').onclick = () => {
       showLoadingAnimation();
       if (currentMode === 'preview') updatePreview();
-    });
+    };
 
-    /* --------------------------------------------------------------------------
-       6. КНОПКА AppBar (ФАЙЛ / ПОДЕЛИТЬСЯ)
-       -------------------------------------------------------------------------- */
-    btnAction.addEventListener('click', () => {
-      if (currentMode === 'preview') {
-        openShareModal();
-      } else {
-        triggerFileOpen();
-      }
-    });
-
-    function triggerFileOpen() {
-      fileInput.click();
-      toggleDrawer(false);
-    }
-
-    menuOpenFile.addEventListener('click', triggerFileOpen);
-
-    fileInput.addEventListener('change', (event) => {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      showLoadingAnimation();
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        codeEditor.value = e.target.result;
-        if (currentMode === 'preview') updatePreview();
-      };
-      reader.readAsText(file);
-    });
-
-    /* --------------------------------------------------------------------------
-       7. СИСТЕМА ПУБЛИКАЦИИ FIREBASE
-       -------------------------------------------------------------------------- */
-    function openShareModal() {
-      updateAppMetadata();
-      
-      if (!shareSlugInput.value) {
-        const cleanName = parsedMetadata.title
-          .toLowerCase()
-          .replace(/[^a-z0-9а-яё]/g, '-')
-          .replace(/-+/g, '-')
-          .replace(/^-|-$/g, '');
-        shareSlugInput.value = cleanName || `site-${Math.floor(Math.random() * 1000)}`;
-      }
-
-      shareDescText.textContent = `${window.location.origin}/?site=${shareSlugInput.value}`;
-      modalOverlay.classList.add('open');
-      shareModal.classList.add('open');
-    }
-
-    function closeShareModal() {
-      modalOverlay.classList.remove('open');
-      shareModal.classList.remove('open');
-    }
-
-    btnCloseModal.addEventListener('click', closeShareModal);
-    modalOverlay.addEventListener('click', closeShareModal);
-
-    shareSlugInput.addEventListener('input', (e) => {
-      const slug = e.target.value.trim();
-      shareDescText.textContent = `${window.location.origin}/?site=${slug}`;
-    });
-
-    btnPublishSite.addEventListener('click', async () => {
-      const slug = shareSlugInput.value.trim().toLowerCase();
-      if (!slug) return;
-
-      showLoadingAnimation();
-      btnPublishSite.disabled = true;
-      btnPublishSite.textContent = "Сохранение...";
-
-      try {
-        await setDoc(doc(db, "projects", slug), {
-          code: codeEditor.value,
-          title: parsedMetadata.title,
-          updatedAt: new Date().toISOString()
-        });
-
-        const fullUrl = `${window.location.origin}${window.location.pathname}?site=${slug}`;
-        await navigator.clipboard.writeText(fullUrl);
-        alert(`Сайт успешно опубликован!\nСсылка скопирована: ${fullUrl}`);
-        closeShareModal();
-      } catch (e) {
-        console.error("Ошибка при сохранении в Firebase:", e);
-        alert("Произошла ошибка при сохранении проекта.");
-      } finally {
-        btnPublishSite.disabled = false;
-        btnPublishSite.textContent = "Скопировать ссылку";
-      }
-    });
-
-    /* --------------------------------------------------------------------------
-       8. ЗАГРУЗКА ПО ССЫЛКЕ НА СТАРТЕ (?site=slug)
-       -------------------------------------------------------------------------- */
-    async function loadSharedProject() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const siteSlug = urlParams.get('site');
-
-      if (siteSlug) {
-        showLoadingAnimation();
-        try {
-          const docRef = doc(db, "projects", siteSlug);
-          const docSnap = await getDoc(docRef);
-
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            codeEditor.value = data.code;
-            shareSlugInput.value = siteSlug;
-            switchMode('preview');
-          } else {
-            show404Page(`site:${siteSlug}`);
-          }
-        } catch (e) {
-          console.error("Ошибка загрузки из Firestore:", e);
-        }
-      }
-    }
-
-    loadSharedProject();
+    document.getElementById('btn-back-editor').onclick = () => switchMode('editor');
   </script>
 </body>
 </html>
