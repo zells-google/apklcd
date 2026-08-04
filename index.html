@@ -478,6 +478,7 @@
 
       <!-- Панель предпросмотра -->
       <div class="view-panel" id="panel-preview">
+        <!-- sandbox без allow-top-navigation заблокирует попытки сломать внешнюю страницу -->
         <iframe id="preview-frame" sandbox="allow-scripts allow-modals allow-same-origin"></iframe>
       </div>
 
@@ -560,11 +561,9 @@
       measurementId: "G-B6R4BMT0M6"
     };
 
-    // Инициализация Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Шаблон кода по умолчанию
     const DEFAULT_CODE = `<!DOCTYPE html>
 <html>
 <head>
@@ -644,11 +643,10 @@
     let currentMode = 'editor';
     let parsedMetadata = { title: 'Мой Сайт', icon: '' };
 
-    // Установка начального кода
     codeEditor.value = DEFAULT_CODE;
 
     /* --------------------------------------------------------------------------
-       1. АНИМАЦИЯ RIPPLE (KOTLIN MATERIAL CLICK EFFECT)
+       1. RIPPLE-ЭФФЕКТ
        -------------------------------------------------------------------------- */
     function createRipple(event) {
       const button = event.currentTarget;
@@ -694,22 +692,17 @@
     function extractHtmlMetadata(htmlText) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlText, 'text/html');
-      
       const title = doc.querySelector('title')?.innerText || 'Без названия';
       const iconLink = doc.querySelector('link[rel*="icon"]')?.href || '';
-      
       return { title, icon: iconLink };
     }
 
     function updateAppMetadata() {
       parsedMetadata = extractHtmlMetadata(codeEditor.value);
-      
       if (parsedMetadata.title && currentMode === 'preview') {
         appTitle.textContent = parsedMetadata.title;
         document.title = parsedMetadata.title;
       }
-      
-      // Настройка иконки в модальном окне
       shareTitleText.textContent = parsedMetadata.title;
       if (parsedMetadata.icon) {
         shareIcon.src = parsedMetadata.icon;
@@ -719,7 +712,7 @@
     }
 
     /* --------------------------------------------------------------------------
-       4. ПЕРЕКЛЮЧЕНИЕ РЕЖИМОВ (РЕДАКТОР / PREVIEW / 404)
+       4. ПЕРЕКЛЮЧЕНИЕ РЕЖИМОВ
        -------------------------------------------------------------------------- */
     function switchMode(mode) {
       if (currentMode === mode && mode !== '404') {
@@ -741,13 +734,13 @@
 
       if (mode === 'preview') {
         updateAppMetadata();
-        btnActionIcon.textContent = 'share'; // Меняем иконку папки на Ссылку
+        btnActionIcon.textContent = 'share';
         updatePreview();
         setTimeout(() => panelPreview.classList.add('active'), 150);
       } else if (mode === 'editor') {
         appTitle.textContent = 'Редактор кода';
         document.title = 'HTML Previewer';
-        btnActionIcon.textContent = 'folder_open'; // Возвращаем папку
+        btnActionIcon.textContent = 'folder_open';
         setTimeout(() => panelEditor.classList.add('active'), 150);
       } else if (mode === '404') {
         appTitle.textContent = 'Ошибка 404';
@@ -758,20 +751,65 @@
       toggleDrawer(false);
     }
 
+    /* --------------------------------------------------------------------------
+       5. ЗАЩИЩЕННЫЙ PREVIEW С ПЕРЕХВАТОМ RE-DIRECT И WINDOW.LOCATION
+       -------------------------------------------------------------------------- */
     function updatePreview() {
-      const source = codeEditor.value;
+      let source = codeEditor.value;
+
+      // Внедряем скрипт-перехватчик location.href / assign
+      const navInterceptor = `
+        <script>
+          (function() {
+            // Перехват присвоения window.location.href
+            let origLocation = window.location.href;
+            Object.defineProperty(window, 'location', {
+              configurable: true,
+              enumerable: true,
+              get: function() { return window.document.location; },
+              set: function(val) {
+                window.parent.postMessage({ type: 'IFRAME_NAVIGATE', url: val }, '*');
+              }
+            });
+          })();
+        <\/script>
+      `;
+
+      // Вставляем скрипт в самый верх тега <head>
+      if (source.includes('<head>')) {
+        source = source.replace('<head>', '<head>' + navInterceptor);
+      } else {
+        source = navInterceptor + source;
+      }
+
       const iframeDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
       iframeDoc.open();
       iframeDoc.write(source);
       iframeDoc.close();
 
-      // Перехват внутренних редиректов/ссылок
       setTimeout(() => attachFrameNavigationHandler(), 100);
     }
 
-    /* --------------------------------------------------------------------------
-       5. ПЕРЕХВАТ НАВИГАЦИИ IFRAME (404 NOT FOUND SYSTEM)
-       -------------------------------------------------------------------------- */
+    // Слушаем сообщения от внедренного в iframe скрипта
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'IFRAME_NAVIGATE') {
+        show404Page(event.data.url);
+      }
+    });
+
+    // Защита: проверяем, не пытается ли iframe загрузить сам HTML Previewer
+    previewFrame.addEventListener('load', () => {
+      try {
+        const frameWindow = previewFrame.contentWindow;
+        // Если внутри iframe появился элемент нашего приложения - заменяем его на 404
+        if (frameWindow.document.getElementById('panel-editor')) {
+          show404Page('index.html');
+        }
+      } catch (e) {
+        // Ошибка CORS может случиться при внешнем редиректе
+      }
+    });
+
     function attachFrameNavigationHandler() {
       try {
         const frameDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
@@ -781,7 +819,6 @@
         links.forEach(link => {
           link.addEventListener('click', (e) => {
             const href = link.getAttribute('href');
-            // Если ссылка ведет на локальный файл (например index.html, about.html)
             if (href && !href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('#') && !href.startsWith('javascript:')) {
               e.preventDefault();
               show404Page(href);
@@ -789,7 +826,7 @@
           });
         });
       } catch (err) {
-        console.warn("Frame security boundary prevents click monitoring", err);
+        console.warn("Frame security boundary", err);
       }
     }
 
@@ -815,7 +852,7 @@
     });
 
     /* --------------------------------------------------------------------------
-       6. КНОПКА ДЕЙСТВИЯ В AppBar (ОТКРЫТЬ ФАЙЛ ИЛИ ПОДЕЛИТЬСЯ)
+       6. КНОПКА AppBar (ФАЙЛ / ПОДЕЛИТЬСЯ)
        -------------------------------------------------------------------------- */
     btnAction.addEventListener('click', () => {
       if (currentMode === 'preview') {
@@ -846,12 +883,11 @@
     });
 
     /* --------------------------------------------------------------------------
-       7. СИСТЕМА ПУБЛИКАЦИИ И FIREBASE FIRESTORE (ПОДЕЛИТЬСЯ)
+       7. СИСТЕМА ПУБЛИКАЦИИ FIREBASE
        -------------------------------------------------------------------------- */
     function openShareModal() {
       updateAppMetadata();
       
-      // Генерируем базовый slug если пустой
       if (!shareSlugInput.value) {
         const cleanName = parsedMetadata.title
           .toLowerCase()
@@ -888,7 +924,6 @@
       btnPublishSite.textContent = "Сохранение...";
 
       try {
-        // Запись в Firebase Firestore
         await setDoc(doc(db, "projects", slug), {
           code: codeEditor.value,
           title: parsedMetadata.title,
@@ -896,8 +931,6 @@
         });
 
         const fullUrl = `${window.location.origin}${window.location.pathname}?site=${slug}`;
-        
-        // Копирование в буфер обмена
         await navigator.clipboard.writeText(fullUrl);
         alert(`Сайт успешно опубликован!\nСсылка скопирована: ${fullUrl}`);
         closeShareModal();
@@ -911,7 +944,7 @@
     });
 
     /* --------------------------------------------------------------------------
-       8. ЗАГРУЗКА САЙТА ПО ССЫЛКЕ НА СТАРТЕ (?site=slug)
+       8. ЗАГРУЗКА ПО ССЫЛКЕ НА СТАРТЕ (?site=slug)
        -------------------------------------------------------------------------- */
     async function loadSharedProject() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -937,9 +970,7 @@
       }
     }
 
-    // Запуск при открытии страницы
     loadSharedProject();
-
   </script>
 </body>
 </html>
