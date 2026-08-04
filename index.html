@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title id="page-title">HTML Inspector Pro</title>
   
-  <!-- Material Icons & Google Fonts (Roboto) -->
+  <!-- Material Icons & Google Fonts -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 
   <style>
     /* ==========================================================================
-       1. СБРОС СТИЛЕЙ И ОСНОВНЫЕ ПЕРЕМЕННЫЕ (Material 3)
+       1. СБРОС СТИЛЕЙ И MATERIAL 3 ТЕМА
        ========================================================================== */
     * {
       box-sizing: border-box;
@@ -45,7 +45,7 @@
     }
 
     /* ==========================================================================
-       2. APP BAR & SEARCH BAR (Material 3 Kotlin Style)
+       2. APP BAR & SEARCH BAR
        ========================================================================== */
     .app-bar {
       height: 56px;
@@ -69,7 +69,6 @@
       text-overflow: ellipsis;
     }
 
-    /* Всплывающая панель поиска в стиле Material Design */
     .search-bar-container {
       position: absolute;
       top: 0;
@@ -118,7 +117,7 @@
     }
 
     /* ==========================================================================
-       3. ПАНЕЛЬ ВЕБ-ФАЙЛОВ (Multi-file Tab System)
+       3. ПАНЕЛЬ ВЕБ-ФАЙЛОВ (Tabs System)
        ========================================================================== */
     .files-bar {
       height: 40px;
@@ -215,7 +214,7 @@
     }
 
     /* ==========================================================================
-       4. РАБОЧАЯ ОБЛАСТЬ И ВЬЮПОРТЫ
+       4. РАБОЧАЯ ОБЛАСТЬ И ТЕКСТАРЕА
        ========================================================================== */
     .content-area {
       flex: 1;
@@ -242,7 +241,7 @@
       height: 100%;
       border: none;
       padding: 16px;
-      font-family: 'Fira Code', 'Courier New', Courier, monospace;
+      font-family: 'Courier New', Courier, monospace;
       font-size: 14px;
       line-height: 1.5;
       background-color: #1e1e1e;
@@ -258,7 +257,6 @@
       background-color: #ffffff;
     }
 
-    /* 404 Screen */
     .not-found-screen {
       display: flex;
       flex-direction: column;
@@ -300,9 +298,6 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.3);
     }
 
-    /* ==========================================================================
-       5. КНОПКИ И МОДАЛЬНЫЕ ОКНА
-       ========================================================================== */
     .md-icon-btn {
       width: 44px;
       height: 44px;
@@ -317,6 +312,9 @@
       outline: none;
     }
 
+    /* ==========================================================================
+       5. DRAWER И МОДАЛЬНОЕ ОКНО "ПОДЕЛИТЬСЯ"
+       ========================================================================== */
     .drawer-overlay, .modal-overlay {
       position: fixed;
       top: 0; left: 0;
@@ -381,24 +379,126 @@
 
     .drawer-item.active .material-icons { color: #64b5f6; }
 
+    /* Chrome Material Share Modal */
+    .share-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.9);
+      width: 90%;
+      max-width: 400px;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      border-radius: 8px;
+      z-index: 25;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      padding: 24px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .share-modal.open {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .share-card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .share-favicon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #252526;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 16px;
+      flex-shrink: 0;
+    }
+
+    .share-site-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .share-site-desc {
+      font-size: 12px;
+      color: #9e9e9e;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .md-input-group {
+      margin-bottom: 20px;
+    }
+
+    .md-input-group label {
+      display: block;
+      font-size: 12px;
+      color: #64b5f6;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .md-input {
+      width: 100%;
+      padding: 10px 12px;
+      background: #252526;
+      border: 1px solid #333;
+      color: #fff;
+      border-radius: 4px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .md-input:focus {
+      border-color: #64b5f6;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .btn-flat {
+      background: none;
+      border: none;
+      color: #64b5f6;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
     #file-input { display: none; }
   </style>
 </head>
 <body>
 
   <div class="app-container">
-    <!-- App Bar Header -->
     <header class="app-bar">
       <button class="md-icon-btn" id="btn-menu"><i class="material-icons">menu</i></button>
       <div class="title" id="app-title">Редактор кода</div>
       
-      <!-- Поиск в стиле Kotlin / Material Design -->
       <button class="md-icon-btn" id="btn-open-search" title="Поиск по коду">
         <i class="material-icons">search</i>
       </button>
 
-      <button class="md-icon-btn" id="btn-action"><i class="material-icons" id="btn-action-icon">folder_open</i></button>
-      <button class="md-icon-btn" id="btn-refresh"><i class="material-icons">refresh</i></button>
+      <button class="md-icon-btn" id="btn-action" title="Действие"><i class="material-icons" id="btn-action-icon">folder_open</i></button>
+      <button class="md-icon-btn" id="btn-refresh" title="Обновить"><i class="material-icons">refresh</i></button>
 
       <!-- Всплывающий Search Bar -->
       <div class="search-bar-container" id="search-bar">
@@ -422,11 +522,11 @@
       </button>
     </div>
 
-    <!-- Рабочее пространство -->
+    <!-- Рабочая область -->
     <main class="content-area">
       <!-- Панель Редактора -->
       <div class="view-panel active" id="panel-editor">
-        <textarea id="code-editor" spellcheck="false" placeholder="Введите код..."></textarea>
+        <textarea id="code-editor" spellcheck="false" placeholder="Введите HTML/CSS/JS код..."></textarea>
       </div>
 
       <!-- Панель Предпросмотра -->
@@ -434,12 +534,12 @@
         <iframe id="preview-frame" sandbox="allow-scripts allow-modals allow-same-origin"></iframe>
       </div>
 
-      <!-- Android Native 404 Screen -->
+      <!-- 404 Screen -->
       <div class="view-panel" id="panel-404">
         <div class="not-found-screen">
           <i class="material-icons">insert_drive_file</i>
           <h3 id="404-filename">Файл не найден</h3>
-          <p>Запрошенный файл отсутствует в структуре проекта.</p>
+          <p>Запрошенный файл отсутствует в проекте.</p>
           <button class="md-button" id="btn-back-editor">Вернуться к коду</button>
         </div>
       </div>
@@ -470,11 +570,53 @@
     </nav>
   </aside>
 
+  <!-- Chrome Share Modal -->
+  <div class="modal-overlay" id="modal-overlay"></div>
+  <div class="share-modal" id="share-modal">
+    <div class="share-card-header">
+      <div class="share-favicon">
+        <i class="material-icons" style="color: #64b5f6;">public</i>
+      </div>
+      <div style="overflow: hidden;">
+        <div class="share-site-title" id="share-title-text">Мой сайт</div>
+        <div class="share-site-desc" id="share-desc-text">Опубликуйте сайт, чтобы создать ссылку</div>
+      </div>
+    </div>
+    
+    <div class="md-input-group">
+      <label for="share-slug">Имя ссылки (Slug)</label>
+      <input type="text" id="share-slug" class="md-input" placeholder="my-awesome-site">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-flat" id="btn-close-modal">Отмена</button>
+      <button class="md-button" id="btn-publish-site">Скопировать ссылку</button>
+    </div>
+  </div>
+
   <input type="file" id="file-input" accept=".html,.htm,.css,.js,.txt">
 
-  <script>
+  <!-- FIREBASE SDKs (v10+ via CDN) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBkd_rtqteAT7LCq9WptfQWLvMBI1igm14",
+      authDomain: "sosial-978d1.firebaseapp.com",
+      databaseURL: "https://sosial-978d1-default-rtdb.firebaseio.com",
+      projectId: "sosial-978d1",
+      storageBucket: "sosial-978d1.firebasestorage.app",
+      messagingSenderId: "546379463021",
+      appId: "1:546379463021:web:ffdea79f85626b945fc264",
+      measurementId: "G-B6R4BMT0M6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
     /* ==========================================================================
-       1. МНОГОФАЙЛОВАЯ СИСТЕМА УПРАВЛЕНИЯ ПРОЕКТОМ
+       1. ПРОЕКТНАЯ СТРУКТУРА ФАЙЛОВ
        ========================================================================== */
     const projectFiles = {
       'index.html': `<!DOCTYPE html>
@@ -487,7 +629,7 @@
 <body>
   <div class="card">
     <h2>Material Multi-File Studio</h2>
-    <p>Все файлы проекта компилируются в один DOM!</p>
+    <p>Все файлы проекта связываются автоматически!</p>
     <button id="btn">Нажми меня</button>
   </div>
   <script src="script.js"><\/script>
@@ -521,7 +663,7 @@ button {
   margin-top: 12px;
 }`,
       'script.js': `document.getElementById('btn').addEventListener('click', () => {
-  alert('Привет из соединенного JS файла!');
+  alert('Привет из подключенного JS файла!');
 });`
     };
 
@@ -539,9 +681,23 @@ button {
     const panel404 = document.getElementById('panel-404');
     const notFoundFilename = document.getElementById('404-filename');
     const progressBar = document.getElementById('progress-bar');
+    const btnAction = document.getElementById('btn-action');
     const btnActionIcon = document.getElementById('btn-action-icon');
+    const menuOpenFile = document.getElementById('menu-open-file');
+    const fileInput = document.getElementById('file-input');
 
-    // Рендер вкладок файлов
+    // Share Modal Elements
+    const modalOverlay = document.getElementById('modal-overlay');
+    const shareModal = document.getElementById('share-modal');
+    const shareTitleText = document.getElementById('share-title-text');
+    const shareDescText = document.getElementById('share-desc-text');
+    const shareSlugInput = document.getElementById('share-slug');
+    const btnCloseModal = document.getElementById('btn-close-modal');
+    const btnPublishSite = document.getElementById('btn-publish-site');
+
+    /* ==========================================================================
+       2. УПРАВЛЕНИЕ ВКТАДКАМИ И ФАЙЛАМИ
+       ========================================================================== */
     function renderTabs() {
       tabsContainer.innerHTML = '';
       Object.keys(projectFiles).forEach(fileName => {
@@ -569,7 +725,6 @@ button {
     }
 
     function switchFile(fileName) {
-      // Сохраняем текущий код
       projectFiles[activeFileName] = codeEditor.value;
       activeFileName = fileName;
       codeEditor.value = projectFiles[fileName];
@@ -586,42 +741,71 @@ button {
     }
 
     btnAddFile.addEventListener('click', () => {
-      const name = prompt('Введите имя файла (например: script.js, style.css):');
+      const name = prompt('Введите имя файла (например: app.js, main.css):');
       if (name && !projectFiles[name]) {
         projectFiles[name] = '';
         switchFile(name);
       }
     });
 
-    // Синхронизация текста редактора с файловой структурой
     codeEditor.addEventListener('input', () => {
       projectFiles[activeFileName] = codeEditor.value;
     });
 
     /* ==========================================================================
-       2. ИНТЕГРАЦИЯ МНОГОФАЙЛОВОСТИ И PREVIEW (Связывание CSS/JS)
+       3. ВСТАВКА И ЗАГРУЗКА ФАЙЛОВ С ДИСКА (ИСПРАВЛЕНО)
+       ========================================================================== */
+    function triggerFileOpen() {
+      fileInput.click();
+      drawer.classList.remove('open');
+      drawerOverlay.classList.remove('open');
+    }
+
+    menuOpenFile.addEventListener('click', triggerFileOpen);
+
+    fileInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      showLoadingAnimation();
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const importedName = file.name;
+        projectFiles[importedName] = e.target.result;
+        switchFile(importedName);
+      };
+      reader.readAsText(file);
+      fileInput.value = ''; // Сброс для возможности загрузить тот же файл снова
+    });
+
+    /* ==========================================================================
+       4. PREVIEW СБОРКА И ПЕРЕХВАТ НАВИГАЦИИ
        ========================================================================== */
     function updatePreview() {
       projectFiles[activeFileName] = codeEditor.value;
-      let htmlContent = projectFiles['index.html'] || '<h3>index.html не найден!</h3>';
+      let htmlContent = projectFiles['index.html'] || '<h3>Создайте index.html</h3>';
 
-      // Внедряем CSS файлы из проекта
+      // Автоматическое объединение CSS файлов
       Object.keys(projectFiles).forEach(fileName => {
         if (fileName.endsWith('.css')) {
           const cssStyle = `<style data-filename="${fileName}">${projectFiles[fileName]}</style>`;
-          htmlContent = htmlContent.replace('</head>', `${cssStyle}\n</head>`);
+          htmlContent = htmlContent.includes('</head>')
+            ? htmlContent.replace('</head>', `${cssStyle}\n</head>`)
+            : cssStyle + htmlContent;
         }
       });
 
-      // Внедряем JS файлы из проекта
+      // Автоматическое объединение JS файлов
       Object.keys(projectFiles).forEach(fileName => {
         if (fileName.endsWith('.js')) {
           const jsScript = `<script data-filename="${fileName}">${projectFiles[fileName]}<\/script>`;
-          htmlContent = htmlContent.replace('</body>', `${jsScript}\n</body>`);
+          htmlContent = htmlContent.includes('</body>')
+            ? htmlContent.replace('</body>', `${jsScript}\n</body>`)
+            : htmlContent + jsScript;
         }
       });
 
-      // Перехватчик редиректов
+      // Редирект-интерцептор
       const navInterceptor = `
         <script>
           (function() {
@@ -654,7 +838,94 @@ button {
     });
 
     /* ==========================================================================
-       3. MATERIAL DESIGN ПОИСК В СТИЛЕ KOTLIN
+       5. СИСТЕМА ПУБЛИКАЦИИ / ШЕРИНГА (FIREBASE)
+       ========================================================================== */
+    function openShareModal() {
+      projectFiles[activeFileName] = codeEditor.value;
+      const title = 'Мой Проект';
+      shareTitleText.textContent = title;
+
+      if (!shareSlugInput.value) {
+        shareSlugInput.value = `site-${Math.floor(Math.random() * 89999 + 10000)}`;
+      }
+
+      shareDescText.textContent = `${window.location.origin}/?site=${shareSlugInput.value}`;
+      modalOverlay.classList.add('open');
+      shareModal.classList.add('open');
+    }
+
+    function closeShareModal() {
+      modalOverlay.classList.remove('open');
+      shareModal.classList.remove('open');
+    }
+
+    btnCloseModal.addEventListener('click', closeShareModal);
+    modalOverlay.addEventListener('click', closeShareModal);
+
+    shareSlugInput.addEventListener('input', (e) => {
+      const slug = e.target.value.trim().toLowerCase();
+      shareDescText.textContent = `${window.location.origin}/?site=${slug}`;
+    });
+
+    btnPublishSite.addEventListener('click', async () => {
+      const slug = shareSlugInput.value.trim().toLowerCase();
+      if (!slug) return;
+
+      showLoadingAnimation();
+      btnPublishSite.disabled = true;
+      btnPublishSite.textContent = "Сохранение...";
+
+      try {
+        await setDoc(doc(db, "projects", slug), {
+          files: projectFiles,
+          updatedAt: new Date().toISOString()
+        });
+
+        const fullUrl = `${window.location.origin}${window.location.pathname}?site=${slug}`;
+        await navigator.clipboard.writeText(fullUrl);
+        alert(`Проект опубликован!\nСсылка скопирована: ${fullUrl}`);
+        closeShareModal();
+      } catch (e) {
+        console.error("Ошибка сохранения Firebase:", e);
+        alert("Ошибка при сохранении проекта.");
+      } finally {
+        btnPublishSite.disabled = false;
+        btnPublishSite.textContent = "Скопировать ссылку";
+      }
+    });
+
+    // Загрузка по сохраненной ссылке (?site=slug)
+    async function loadSharedProject() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const siteSlug = urlParams.get('site');
+
+      if (siteSlug) {
+        showLoadingAnimation();
+        try {
+          const docRef = doc(db, "projects", siteSlug);
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.files) {
+              Object.keys(projectFiles).forEach(key => delete projectFiles[key]);
+              Object.assign(projectFiles, data.files);
+              activeFileName = Object.keys(projectFiles)[0] || 'index.html';
+              renderTabs();
+              codeEditor.value = projectFiles[activeFileName];
+              switchMode('preview');
+            }
+          } else {
+            show404Page(`site:${siteSlug}`);
+          }
+        } catch (e) {
+          console.error("Ошибка Firebase:", e);
+        }
+      }
+    }
+
+    /* ==========================================================================
+       6. ПОИСК (KOTLIN MATERIAL 3)
        ========================================================================== */
     const btnOpenSearch = document.getElementById('btn-open-search');
     const btnCloseSearch = document.getElementById('btn-close-search');
@@ -705,11 +976,9 @@ button {
 
     function highlightMatch() {
       if (currentMatchIndex < 0 || currentMatchIndex >= searchMatches.length) return;
-
       const match = searchMatches[currentMatchIndex];
       codeEditor.focus();
       codeEditor.setSelectionRange(match.start, match.end);
-
       searchCount.textContent = `${currentMatchIndex + 1}/${searchMatches.length}`;
     }
 
@@ -726,7 +995,7 @@ button {
     });
 
     /* ==========================================================================
-       4. ПЕРЕКЛЮЧЕНИЕ ЭКРАНОВ И НАВИГАЦИЯ
+       7. НАВИГАЦИЯ И ИНИЦИАЛИЗАЦИЯ
        ========================================================================== */
     function switchMode(mode) {
       currentMode = mode;
@@ -751,6 +1020,14 @@ button {
       }
     }
 
+    btnAction.addEventListener('click', () => {
+      if (currentMode === 'preview') {
+        openShareModal();
+      } else {
+        triggerFileOpen();
+      }
+    });
+
     function show404Page(filename) {
       notFoundFilename.textContent = `Файл "${filename}" не найден`;
       switchMode('404');
@@ -761,11 +1038,9 @@ button {
       setTimeout(() => progressBar.classList.remove('active'), 500);
     }
 
-    // Инициализация
     renderTabs();
     codeEditor.value = projectFiles[activeFileName];
 
-    // Drawer Controls
     const drawer = document.getElementById('drawer');
     const drawerOverlay = document.getElementById('drawer-overlay');
     document.getElementById('btn-menu').onclick = () => {
@@ -791,6 +1066,8 @@ button {
     };
 
     document.getElementById('btn-back-editor').onclick = () => switchMode('editor');
+
+    loadSharedProject();
   </script>
 </body>
 </html>
